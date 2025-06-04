@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Ecomlyx - SaaS Website Builder Platform
 
 A modern SaaS platform for building and managing websites, built with Next.js, Chakra UI, Docker, and Prisma.
@@ -141,3 +142,7 @@ NEXTAUTH_URL=
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+=======
+# ecomlyx_github
+# ecomlyx-template
+>>>>>>> ce1b8f28665c54d55b99de5126a0bf0456150838
