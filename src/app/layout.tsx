@@ -31,7 +31,7 @@ export default function RootLayout({
           <ChakraProvider>
             <Box minH="100vh" display="flex" flexDirection="column">
               {/* Only show TopNav on dashboard pages, Header on public/auth pages */}
-              {isDashboard ? <TopNav /> : <Header />}
+              {isDashboard ? <TopNav /> : null}
               <Box flex="1">
                 {children}
               </Box>

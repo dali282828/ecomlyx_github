@@ -21,6 +21,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { BUSINESS_TYPE_PRESETS } from '../ai-presets';
 
 const MotionBox = motion(Box);
 
@@ -64,6 +65,9 @@ export function CreateWebsiteForm({ isOpen, onClose, onSuccess }: CreateWebsiteF
     e.preventDefault();
     setIsLoading(true);
 
+    // Get preset for selected business type
+    const preset = BUSINESS_TYPE_PRESETS[businessType];
+
     try {
       const response = await fetch('/api/websites', {
         method: 'POST',
@@ -74,6 +78,9 @@ export function CreateWebsiteForm({ isOpen, onClose, onSuccess }: CreateWebsiteF
           name,
           businessType,
           templateId,
+          theme: preset?.theme,
+          plugins: preset?.plugins,
+          pages: preset?.pages,
         }),
       });
 

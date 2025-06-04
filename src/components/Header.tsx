@@ -19,12 +19,8 @@ export default function Header() {
     <Box as="header" bg={bg} borderBottomWidth="1px" borderColor={border} px={4} py={2} position="sticky" top={0} zIndex={10} boxShadow="sm">
       <Flex align="center" maxW="container.xl" mx="auto">
         <HStack spacing={4}>
-          <Link as={NextLink} href="/" fontWeight="bold" fontSize="xl" color="blue.500">
-            Ecomlyx
-          </Link>
-          <Link as={NextLink} href="/" color={pathname === '/' ? 'blue.600' : undefined}>
-            Home
-          </Link>
+          {/* REMOVE: <Link as={NextLink} href="/" fontWeight="bold" fontSize="xl" color="blue.500">Ecomlyx</Link> */}
+          {/* REMOVE: <Link as={NextLink} href="/" color={pathname === '/' ? 'blue.600' : undefined}>Home</Link> */}
         </HStack>
         <Spacer />
         <HStack spacing={2}>

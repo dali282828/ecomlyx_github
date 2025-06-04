@@ -13,6 +13,10 @@ import {
   HStack,
   Tooltip,
   useBreakpointValue,
+  Avatar,
+  Button,
+  Divider,
+  Spacer,
 } from '@chakra-ui/react';
 import {
   FiHome,
@@ -23,6 +27,7 @@ import {
   FiGlobe,
   FiShield,
   FiTrendingUp,
+  FiHelpCircle,
 } from 'react-icons/fi';
 import { IconType } from 'react-icons';
 import Link from 'next/link';
@@ -55,7 +60,12 @@ interface SidebarProps extends BoxProps {
 export function Sidebar({ onClose, ...rest }: SidebarProps) {
   const pathname = usePathname();
   const isMobile = useBreakpointValue({ base: true, md: false });
-  
+  // Mock user info (replace with real user data from context/session)
+  const user = {
+    name: 'Jane Doe',
+    email: 'jane.doe@example.com',
+    avatar: '',
+  };
   return (
     <Box
       bg={useColorModeValue('white', 'gray.900')}
@@ -64,54 +74,117 @@ export function Sidebar({ onClose, ...rest }: SidebarProps) {
       w={{ base: 'full', md: 60 }}
       pos="fixed"
       h="full"
+      display="flex"
+      flexDirection="column"
+      justifyContent="space-between"
       {...rest}
     >
-      <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
-        <MotionFlex
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          alignItems="center"
-          whileHover={{ scale: 1.02 }}
-        >
-          <Icon as={FiLayers} boxSize="8" color="blue.500" />
-          <Text
-            fontSize="2xl"
-            fontFamily="monospace"
-            fontWeight="bold"
-            ml="2"
-            bgGradient="linear(to-r, blue.400, teal.400)"
-            bgClip="text"
-          >
-            10Web
-          </Text>
-        </MotionFlex>
-        <CloseButton 
-          display={{ base: 'flex', md: 'none' }} 
-          onClick={onClose}
-          size="md"
-          color="gray.500"
-          _hover={{ color: 'blue.500' }}
-        />
-      </Flex>
-      <VStack spacing={2} align="stretch" px="4">
-        {LinkItems.map((link, index) => (
-          <MotionBox
-            key={link.name}
+      <Box>
+        {/* User Info */}
+        <Flex align="center" px={6} py={4} gap={3} borderBottomWidth="1px" borderColor={useColorModeValue('gray.100', 'gray.800')}>
+          <Avatar name={user.name} src={user.avatar} size="md" />
+          <Box>
+            <Text fontWeight="bold" fontSize="md">{user.name}</Text>
+            <Text fontSize="xs" color="gray.500">{user.email}</Text>
+          </Box>
+        </Flex>
+        {/* Branding and Close Button */}
+        <Flex h="16" alignItems="center" mx="8" justifyContent="space-between">
+          <MotionFlex
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
+            transition={{ duration: 0.5 }}
+            alignItems="center"
+            whileHover={{ scale: 1.02 }}
           >
-            <NavItem
-              icon={link.icon}
-              path={link.path}
-              isActive={pathname === link.path}
+            <Icon as={FiLayers} boxSize="8" color="blue.500" />
+            <Text
+              fontSize="2xl"
+              fontFamily="monospace"
+              fontWeight="bold"
+              ml="2"
+              bgGradient="linear(to-r, blue.400, teal.400)"
+              bgClip="text"
             >
-              {link.name}
-            </NavItem>
-          </MotionBox>
-        ))}
-      </VStack>
+              10Web
+            </Text>
+          </MotionFlex>
+          <CloseButton 
+            display={{ base: 'flex', md: 'none' }} 
+            onClick={onClose}
+            size="md"
+            color="gray.500"
+            _hover={{ color: 'blue.500' }}
+          />
+        </Flex>
+        {/* Create Website Button */}
+        <Box px={6} py={2}>
+          <Button colorScheme="brand" w="full" size="md" leftIcon={<FiGrid />}>
+            Create Website
+          </Button>
+        </Box>
+        <Divider my={2} />
+        {/* Navigation Groups */}
+        <VStack spacing={2} align="stretch" px="4">
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" mt={2} mb={1}>Main</Text>
+          {LinkItems.slice(0, 2).map((link, index) => (
+            <MotionBox
+              key={link.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <NavItem
+                icon={link.icon}
+                path={link.path}
+                isActive={pathname === link.path}
+              >
+                {link.name}
+              </NavItem>
+            </MotionBox>
+          ))}
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" mt={4} mb={1}>Management</Text>
+          {LinkItems.slice(2, 5).map((link, index) => (
+            <MotionBox
+              key={link.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: (index + 2) * 0.1 }}
+            >
+              <NavItem
+                icon={link.icon}
+                path={link.path}
+                isActive={pathname === link.path}
+              >
+                {link.name}
+              </NavItem>
+            </MotionBox>
+          ))}
+          <Text fontSize="xs" fontWeight="bold" color="gray.500" mt={4} mb={1}>Analytics & Settings</Text>
+          {LinkItems.slice(5).map((link, index) => (
+            <MotionBox
+              key={link.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: (index + 5) * 0.1 }}
+            >
+              <NavItem
+                icon={link.icon}
+                path={link.path}
+                isActive={pathname === link.path}
+              >
+                {link.name}
+              </NavItem>
+            </MotionBox>
+          ))}
+        </VStack>
+      </Box>
+      {/* Footer Help Link */}
+      <Box px={6} py={4} borderTopWidth="1px" borderColor={useColorModeValue('gray.100', 'gray.800')}>
+        <Button as={Link} href="/help" variant="ghost" colorScheme="blue" w="full" leftIcon={<FiHelpCircle />}>
+          Help & Support
+        </Button>
+      </Box>
     </Box>
   );
 }

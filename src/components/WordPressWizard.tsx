@@ -37,8 +37,9 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { FaWordpress, FaPalette, FaPlug, FaCog, FaCheck, FaGlobe, FaLock, FaBolt, FaSearch, FaUsers } from 'react-icons/fa';
+import { FaWordpress, FaPalette, FaPlug, FaCog, FaCheck, FaGlobe, FaLock, FaBolt, FaSearch, FaUsers, FaFlagCheckered } from 'react-icons/fa';
 import { IconType } from 'react-icons';
+import PlanSelector from './PlanSelector';
 
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -47,6 +48,7 @@ const steps = [
   { title: 'Basic Info', description: 'Website details', icon: FaGlobe },
   { title: 'Theme', description: 'Choose your design', icon: FaPalette },
   { title: 'Plugins', description: 'Add functionality', icon: FaPlug },
+  { title: 'Plan', description: 'Choose your plan', icon: FaFlagCheckered },
   { title: 'Configuration', description: 'Final settings', icon: FaCog },
 ];
 
@@ -87,6 +89,7 @@ export function WordPressWizard({
     adminEmail: '',
     theme: '',
     plugins: [] as string[],
+    plan: '',
     settings: {
       permalinks: '/%postname%/',
       timezone: 'UTC',
@@ -420,6 +423,27 @@ export function WordPressWizard({
         );
 
       case 3:
+        return (
+          <MotionFlex
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            direction="column"
+            gap={6}
+          >
+            <PlanSelector
+              businessType={businessType}
+              onSelect={(planId) => setFormData({ ...formData, plan: planId })}
+            />
+            {formData.plan && (
+              <Text mt={2} color="green.500" fontWeight="bold">
+                Selected plan: {formData.plan}
+              </Text>
+            )}
+          </MotionFlex>
+        );
+
+      case 4:
         return (
           <MotionFlex
             initial={{ opacity: 0, y: 20 }}

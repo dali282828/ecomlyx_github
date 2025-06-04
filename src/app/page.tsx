@@ -37,7 +37,16 @@ import {
   FaShieldAlt,
   FaChartLine,
   FaMobileAlt,
+  FaArrowRight,
 } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Header from '@/components/layout/Header';
+import Testimonials from '@/components/home/Testimonials';
+import HowItWorks from '@/components/home/HowItWorks';
+import TrustBadges from '@/components/TrustBadges';
+import HelpButton from '@/components/HelpButton';
+import SectionDivider from '@/components/SectionDivider';
 
 const businessTypes = [
   {
@@ -133,26 +142,44 @@ const features = [
 
 export default function Home() {
   const router = useRouter();
+  const [selectedType, setSelectedType] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const bgGradient = useColorModeValue(
     'linear(to-r, blue.400, purple.500)',
     'linear(to-r, blue.600, purple.600)'
   );
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
 
   const handleGetStarted = () => {
     router.push('/create');
   };
 
-  const handleSelectTemplate = (type: string) => {
-    router.push(`/create?type=${type.toLowerCase()}`);
+  const handleSelectTemplate = (type: any) => {
+    setSelectedType(type);
+    setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowStickyCTA(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <Box>
-      {/* Hero Section */}
+      <Header />
+      {/* Animated Hero Section */}
       <Box
+        as={motion.div}
+        initial={{ backgroundPosition: '0% 50%' }}
+        animate={{ backgroundPosition: '100% 50%' }}
+        transition={{ repeat: Infinity, duration: 10, ease: 'linear' }}
         bgGradient={bgGradient}
         color="white"
-        py={20}
+        pt={32}
+        pb={20}
         position="relative"
         overflow="hidden"
       >
@@ -168,52 +195,105 @@ export default function Home() {
             >
               New Features Available
             </Badge>
-            <Heading
-              as="h1"
-              size="2xl"
-              bgGradient="linear(to-r, white, blue.100)"
-              bgClip="text"
-              fontWeight="extrabold"
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
             >
-              Create Your Business Website in Minutes
-            </Heading>
+              <Heading
+                as="h1"
+                size="2xl"
+                bgGradient="linear(to-r, white, blue.100)"
+                bgClip="text"
+                fontWeight="extrabold"
+                mb={2}
+              >
+                Create Your Business Website in Minutes
+              </Heading>
+            </motion.div>
             <Text fontSize="xl" maxW="container.md" opacity={0.9}>
               Choose your business type and get a fully functional website with all the features you need.
               No coding required.
             </Text>
-            <HStack spacing={4}>
+            <HStack spacing={4} justify="center">
               <Button
+                as={motion.button}
                 size="lg"
-                colorScheme="whiteAlpha"
+                colorScheme="brand"
                 px={8}
+                rightIcon={<FaArrowRight />}
+                fontWeight="bold"
+                fontSize="xl"
                 onClick={handleGetStarted}
                 _hover={{
-                  transform: 'translateY(-2px)',
-                  boxShadow: 'lg',
+                  transform: 'translateY(-2px) scale(1.05)',
+                  boxShadow: '2xl',
+                }}
+                transition="all 0.2s"
+                animate={{
+                  y: [0, -8, 0],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  repeatType: 'loop',
+                  ease: 'easeInOut',
                 }}
               >
                 Get Started
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                color="white"
-                borderColor="white"
-                px={8}
-                _hover={{
-                  bg: 'whiteAlpha.200',
-                  transform: 'translateY(-2px)',
-                }}
-              >
-                Learn More
-              </Button>
             </HStack>
+            {/* Sticky CTA for desktop */}
+            {showStickyCTA && (
+              <Box
+                position="fixed"
+                bottom={8}
+                left="50%"
+                transform="translateX(-50%)"
+                zIndex={1200}
+                display={{ base: 'none', md: 'block' }}
+              >
+                <Button
+                  as={motion.button}
+                  size="lg"
+                  colorScheme="brand"
+                  px={8}
+                  rightIcon={<FaArrowRight />}
+                  fontWeight="bold"
+                  fontSize="xl"
+                  onClick={handleGetStarted}
+                  boxShadow="2xl"
+                  animate={{
+                    y: [0, -8, 0],
+                  }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    repeatType: 'loop',
+                    ease: 'easeInOut',
+                  }}
+                >
+                  Get Started
+                </Button>
+              </Box>
+            )}
           </VStack>
         </Container>
       </Box>
-
+      {/* Trust Badges Section */}
+      <SectionDivider color="#f7fafc" />
+      <TrustBadges />
+      <SectionDivider color="#f7fafc" flip />
       {/* AI vs Classic Mode Section */}
-      <Box py={16} bg={useColorModeValue('gray.100', 'gray.800')}>
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7 }}
+        py={16}
+        bg={useColorModeValue('gray.100', 'gray.800')}
+      >
         <Container maxW="container.xl">
           <VStack spacing={8}>
             <Heading as="h2" size="lg" textAlign="center">
@@ -268,9 +348,17 @@ export default function Home() {
           </VStack>
         </Container>
       </Box>
-
+      <SectionDivider color="#f7fafc" />
       {/* Stats Section */}
-      <Box py={20} bg={useColorModeValue('gray.50', 'gray.900')}>
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        py={20}
+        bg={useColorModeValue('gray.50', 'gray.900')}
+      >
         <Container maxW="container.xl">
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
             <Stat>
@@ -300,9 +388,16 @@ export default function Home() {
           </SimpleGrid>
         </Container>
       </Box>
-
+      <SectionDivider color="#fff" flip />
       {/* Features Section */}
-      <Box py={20}>
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, delay: 0.2 }}
+        py={20}
+      >
         <Container maxW="container.xl">
           <VStack spacing={12}>
             <VStack spacing={4} textAlign="center">
@@ -340,9 +435,17 @@ export default function Home() {
           </VStack>
         </Container>
       </Box>
-
+      <SectionDivider color="#f7fafc" />
       {/* Business Types Section */}
-      <Box py={20} bg={useColorModeValue('gray.50', 'gray.900')}>
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, delay: 0.3 }}
+        py={20}
+        bg={useColorModeValue('gray.50', 'gray.900')}
+      >
         <Container maxW="container.xl">
           <VStack spacing={12}>
             <VStack spacing={4} textAlign="center">
@@ -354,54 +457,91 @@ export default function Home() {
               </Text>
             </VStack>
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-              {businessTypes.map((type) => (
-                <Box
+              {businessTypes.map((type, idx) => (
+                <motion.div
                   key={type.title}
-                  p={6}
-                  bg={useColorModeValue('white', 'gray.800')}
-                  borderRadius="lg"
-                  boxShadow="md"
-                  _hover={{
-                    transform: 'translateY(-4px)',
-                    boxShadow: 'lg',
-                    transition: 'all 0.2s',
-                  }}
+                  whileHover={{ scale: 1.04, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                 >
-                  <VStack spacing={4} align="start">
-                    <Icon as={type.icon} w={10} h={10} color="blue.500" />
-                    <Heading as="h3" size="md">
-                      {type.title}
-                    </Heading>
-                    <Text color="gray.600">{type.description}</Text>
-                    <VStack align="start" spacing={2} w="full">
-                      {type.features.map((feature) => (
-                        <HStack key={feature} spacing={2}>
-                          <Box w={2} h={2} bg="blue.500" borderRadius="full" />
-                          <Text fontSize="sm">{feature}</Text>
-                        </HStack>
+                  <Box
+                    bg={useColorModeValue('white', 'gray.800')}
+                    borderRadius="xl"
+                    boxShadow="lg"
+                    p={8}
+                    cursor="pointer"
+                    borderWidth={selectedType?.title === type.title ? '2px' : '1px'}
+                    borderColor={selectedType?.title === type.title ? 'brand.500' : 'gray.200'}
+                    onClick={() => handleSelectTemplate(type)}
+                    transition="all 0.2s"
+                    minH="280px"
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="space-between"
+                  >
+                    <HStack spacing={4} mb={4}>
+                      <Icon as={type.icon} boxSize={8} color="brand.500" />
+                      <Heading size="md">{type.title}</Heading>
+                    </HStack>
+                    <Text color="gray.600" mb={4}>
+                      {type.description}
+                    </Text>
+                    <HStack spacing={2} flexWrap="wrap">
+                      {type.features.map((feature: string) => (
+                        <Badge key={feature} colorScheme="blue" variant="subtle">
+                          {feature}
+                        </Badge>
                       ))}
-                    </VStack>
+                    </HStack>
                     <Button
-                      colorScheme="blue"
-                      width="full"
-                      onClick={() => handleSelectTemplate(type.title)}
-                      _hover={{
-                        transform: 'translateY(-2px)',
-                        boxShadow: 'md',
-                      }}
+                      mt={6}
+                      colorScheme="brand"
+                      size="sm"
+                      w="full"
+                      onClick={() => handleSelectTemplate(type)}
+                      variant="outline"
                     >
-                      Select Template
+                      Preview
                     </Button>
-                  </VStack>
-                </Box>
+                  </Box>
+                </motion.div>
               ))}
             </SimpleGrid>
           </VStack>
         </Container>
       </Box>
-
+      <SectionDivider color="#fff" flip />
+      {/* How It Works Section */}
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, delay: 0.4 }}
+      >
+        <HowItWorks />
+      </Box>
+      <SectionDivider color="#f7fafc" />
+      {/* Testimonials Section */}
+      <Box
+        as={motion.div}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7, delay: 0.5 }}
+      >
+        <Testimonials />
+      </Box>
+      <SectionDivider color="#fff" flip />
       {/* CTA Section */}
-      <Box py={20}>
+      <Box
+        as={motion.div}
+        initial={{ scale: 0.95, opacity: 0 }}
+        whileInView={{ scale: 1, opacity: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6, type: 'spring' }}
+        py={20}
+      >
         <Container maxW="container.xl">
           <Box
             bgGradient={bgGradient}
@@ -433,6 +573,76 @@ export default function Home() {
           </Box>
         </Container>
       </Box>
+
+      {/* Business Type Details Modal */}
+      <AnimatePresence>
+        {isModalOpen && selectedType && (
+          <Box
+            as={motion.div}
+            position="fixed"
+            top={0}
+            left={0}
+            w="100vw"
+            h="100vh"
+            bg="blackAlpha.700"
+            zIndex={2000}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Box
+              bg={useColorModeValue('white', 'gray.800')}
+              borderRadius="2xl"
+              p={10}
+              maxW="lg"
+              w="full"
+              boxShadow="2xl"
+              position="relative"
+            >
+              <Button
+                position="absolute"
+                top={4}
+                right={4}
+                size="sm"
+                onClick={() => setIsModalOpen(false)}
+                variant="ghost"
+              >
+                Close
+              </Button>
+              <HStack spacing={4} mb={4}>
+                <Icon as={selectedType.icon} boxSize={10} color="brand.500" />
+                <Heading size="lg">{selectedType.title}</Heading>
+              </HStack>
+              <Text color="gray.600" mb={6}>{selectedType.description}</Text>
+              <VStack align="start" spacing={2} mb={6}>
+                {selectedType.features.map((feature: string) => (
+                  <HStack key={feature}>
+                    <Badge colorScheme="blue">{feature}</Badge>
+                  </HStack>
+                ))}
+              </VStack>
+              <Button
+                colorScheme="brand"
+                size="lg"
+                w="full"
+                rightIcon={<FaArrowRight />}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  router.push(`/create?type=${selectedType.title.toLowerCase()}`);
+                }}
+              >
+                Use this Template
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Help Button */}
+      <HelpButton />
     </Box>
   );
 } 

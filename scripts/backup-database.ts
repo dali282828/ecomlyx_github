@@ -3,6 +3,7 @@ import { Storage } from '@google-cloud/storage';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '../src/lib/logger';
+import path from 'path';
 
 const execAsync = promisify(exec);
 const prisma = new PrismaClient();
@@ -23,21 +24,25 @@ class DatabaseBackupService {
   }
 
   async createBackup(): Promise<string> {
+    const DB_HOST = process.env.DB_HOST || 'localhost';
+    const DB_PORT = process.env.DB_PORT || '3306';
+    const DB_USER = process.env.DB_USER || 'root';
+    const DB_PASSWORD = process.env.DB_PASSWORD || 'root123';
+    const DB_NAME = process.env.DB_NAME || 'website_builder_dev';
+
+    const backupDir = path.resolve(__dirname, '../backups');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFileName = `database-backup-${timestamp}.sql`;
-    const localBackupPath = `/tmp/${backupFileName}`;
+    const backupFile = path.join(backupDir, `${DB_NAME}-backup-${timestamp}.sql`);
+
+    const dumpCmd = `mysqldump -h ${DB_HOST} -P ${DB_PORT} -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > "${backupFile}"`;
 
     try {
       logger.info('Starting database backup...');
 
-      // Create database dump
-      const databaseUrl = new URL(process.env.DATABASE_URL!);
-      const dumpCommand = `mysqldump -h ${databaseUrl.hostname} -P ${databaseUrl.port} -u ${databaseUrl.username} -p${databaseUrl.password} ${databaseUrl.pathname.slice(1)} > ${localBackupPath}`;
-
-      await execAsync(dumpCommand);
+      await execAsync(dumpCmd);
 
       // Get backup metadata
-      const stats = await this.getFileStats(localBackupPath);
+      const stats = await this.getFileStats(backupFile);
       const tables = await this.getTableNames();
       
       const metadata: BackupMetadata = {
@@ -48,21 +53,18 @@ class DatabaseBackupService {
       };
 
       // Upload to cloud storage
-      await this.uploadToCloudStorage(localBackupPath, backupFileName, metadata);
-
-      // Clean up local file
-      await execAsync(`rm ${localBackupPath}`);
+      await this.uploadToCloudStorage(backupFile, backupFile, metadata);
 
       // Cleanup old backups
       await this.cleanupOldBackups();
 
       logger.info({
-        fileName: backupFileName,
+        fileName: backupFile,
         size: stats.size,
         tablesCount: tables.length,
       }, 'Database backup completed successfully');
 
-      return backupFileName;
+      return backupFile;
     } catch (error) {
       logger.error({ error }, 'Database backup failed');
       throw error;
