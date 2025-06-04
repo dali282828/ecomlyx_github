@@ -1,0 +1,62 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: business-website-builder
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/${PROJECT_ID}/business-website-builder
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: url
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secrets
+                  key: nextauth-secret
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: url
+          envFrom:
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: cloudsql
+              mountPath: /cloudsql
+      volumes:
+        - name: cloudsql
+          csi:
+            driver: "gcp.csi.driver"
+            readOnly: true
+            fsType: "ext4"
+            volumeAttributes:
+              instanceName: "${PROJECT_ID}:${REGION}:business-website-db" 

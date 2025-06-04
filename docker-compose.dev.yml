@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Next.js application with development settings
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:Gar7a28001082@34.122.253.242:3306/website_builder
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=10web-clone-2024-secret-key-xyz123-abc456
+      - WP_CLI_PATH=/usr/local/bin/wp
+      - WORDPRESS_INSTALL_DIR=/var/www/wordpress
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+  # WordPress installation
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "8080:80"
+    environment:
+      - WORDPRESS_DB_HOST=34.122.253.242
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=Gar7a28001082
+      - WORDPRESS_DB_NAME=website_builder
+    volumes:
+      - wordpress_data:/var/www/html
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=34.122.253.242
+      - PMA_USER=root
+      - PMA_PASSWORD=Gar7a28001082
+    depends_on:
+      - wordpress
+
+  # Redis for caching
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # MySQL Database for Development
+  mysql:
+    image: mysql:8.0
+    container_name: dev-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: website_builder_dev
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/
+
+volumes:
+  wordpress_data:
+  redis_data:
+  mysql_dev_data: 

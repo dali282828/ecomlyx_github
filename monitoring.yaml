@@ -1,0 +1,54 @@
+apiVersion: monitoring.googleapis.com/v1
+kind: UptimeCheckConfig
+metadata:
+  name: website-builder-health
+spec:
+  displayName: Website Builder Health Check
+  httpCheck:
+    path: /api/health
+    port: 8080
+    useSsl: true
+  monitoredResource:
+    type: cloud_run_revision
+    labels:
+      project_id: ${PROJECT_ID}
+      service_name: business-website-builder
+  period: 60s
+  timeout: 10s
+
+policies:
+  - displayName: "High Error Rate"
+    conditions:
+      - displayName: "Error rate > 1%"
+        filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="business-website-builder" AND metric.type="run.googleapis.com/request_count" AND metric.labels.response_code_class="5xx"'
+        threshold:
+          value: 1
+          duration: 300s
+    notificationChannels:
+      - type: email
+        displayName: "Admin Alerts"
+        email: "admin@yourdomain.com"
+
+  - displayName: "High Latency"
+    conditions:
+      - displayName: "Latency > 1s"
+        filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="business-website-builder" AND metric.type="run.googleapis.com/request_latencies"'
+        threshold:
+          value: 1000
+          duration: 300s
+    notificationChannels:
+      - type: email
+        displayName: "Admin Alerts"
+        email: "admin@yourdomain.com"
+
+  - displayName: "High CPU Usage"
+    conditions:
+      - displayName: "CPU > 80%"
+        filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="business-website-builder" AND metric.type="run.googleapis.com/container/cpu/utilizations"'
+        threshold:
+          value: 0.8
+          duration: 300s
+    notificationChannels:
+      - type: email
+        displayName: "Admin Alerts"
+        email: "admin@yourdomain.com" 

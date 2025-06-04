@@ -1,0 +1,24 @@
+apiVersion: autoscaling.knative.dev/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: website-builder-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: business-website-builder
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80 

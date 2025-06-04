@@ -1,0 +1,244 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("NODE_ENV") == "development" ? "sqlite" : "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  websites      Website[]
+  role          Role      @default(USER)
+  subscription  Subscription?
+  supportTickets SupportTicket[]
+  pageViews     PageView[]
+  lastLoginAt   DateTime?
+}
+
+model Website {
+  id            String    @id @default(cuid())
+  name          String
+  businessType  String
+  templateId    String
+  status        WebsiteStatus @default(DRAFT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  domain        Domain?
+  customization Json      // Stores website customization data
+  pages         Page[]
+  plugins       Plugin[]
+  settings      WebsiteSettings?
+  wordpress     WordPressConfig?
+  analytics     WebsiteAnalytics[]
+  pageViews     PageView[]
+}
+
+model Domain {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  websiteId   String    @unique
+  website     Website   @relation(fields: [websiteId], references: [id])
+  status      DomainStatus @default(PENDING)
+  sslEnabled  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String
+  content     Json
+  websiteId   String
+  website     Website   @relation(fields: [websiteId], references: [id])
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  order       Int       @default(0)
+  size        Int       @default(0) // Size in bytes
+
+  @@unique([websiteId, slug])
+}
+
+model Plugin {
+  id          String    @id @default(cuid())
+  name        String
+  version     String
+  websiteId   String
+  website     Website   @relation(fields: [websiteId], references: [id])
+  isActive    Boolean   @default(true)
+  settings    Json?
+  size        Int       @default(0) // Size in bytes
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([websiteId, name])
+}
+
+model WebsiteSettings {
+  id          String    @id @default(cuid())
+  websiteId   String    @unique
+  website     Website   @relation(fields: [websiteId], references: [id])
+  seoSettings Json?
+  analytics   Json?
+  socialMedia Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model WordPressConfig {
+  id              String    @id @default(cuid())
+  websiteId       String    @unique
+  website         Website   @relation(fields: [websiteId], references: [id])
+  adminUsername   String
+  adminPassword   String
+  dbName          String
+  dbUser          String
+  dbPassword      String
+  dbHost          String
+  wpVersion       String
+  siteUrl         String?
+  adminUrl        String?
+  status          WPStatus  @default(INSTALLING)
+  installedPlugins Json     // List of installed WordPress plugins
+  installedTheme   String?  // Active WordPress theme
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  plan          PlanType  @default(BASIC)
+  status        SubscriptionStatus @default(ACTIVE)
+  startDate     DateTime  @default(now())
+  endDate       DateTime
+  amount        Float
+  storageLimit  Int       // in GB
+  bandwidthLimit Int      // in GB
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SupportTicket {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  subject     String
+  description String    @db.Text
+  status      TicketStatus @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  responses   TicketResponse[]
+}
+
+model TicketResponse {
+  id          String    @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id])
+  content     String    @db.Text
+  isStaff     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model WebsiteAnalytics {
+  id          String    @id @default(cuid())
+  websiteId   String
+  website     Website   @relation(fields: [websiteId], references: [id])
+  date        DateTime  @default(now())
+  visitors    Int       @default(0)
+  pageViews   Int       @default(0)
+  bandwidth   Int       @default(0) // in bytes
+  pageSpeed   Int?      // Page speed score
+  mobileScore Int?      // Mobile performance score
+  desktopScore Int?     // Desktop performance score
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([websiteId, date])
+}
+
+model PageView {
+  id          String    @id @default(cuid())
+  websiteId   String
+  website     Website   @relation(fields: [websiteId], references: [id])
+  path        String
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  timestamp   DateTime  @default(now())
+  userAgent   String?
+  ipAddress   String?
+  referrer    String?
+  loadTime    Int?      // in milliseconds
+
+  @@index([websiteId, timestamp])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum WebsiteStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum DomainStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  FAILED
+}
+
+enum WPStatus {
+  INSTALLING
+  CONFIGURING
+  ACTIVE
+  ERROR
+  MAINTENANCE
+}
+
+enum PlanType {
+  BASIC
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+} 
